@@ -7,20 +7,31 @@ Original file is located at
     https://colab.research.google.com/drive/1B_f-zilSOaNSL0DMzXeVgP4x87QIcVQP
 """
 
-!pip install easyocr
 import easyocr
 import PIL
 import os
 
-#Load the image
-image = PIL.Image.open("Assignment.png")
+def recognize_text(image_path):
+    # Load the image
+    image = PIL.Image.open(image_path)
 
-#Initialize easyocr reader
-reader = easyocr.Reader(['en'])
+    #prevent some path errors for other image formats
+    ip = os.path.join(image.filename)
 
-#Use the reader to detect the text in the photo
-result = reader.readtext(image_path)
+    # Initialize EasyOCR reader
+    reader = easyocr.Reader(['en'])
 
-for r in result:
-  print(r[1])
+    # Use the reader to detect the text in the photo
+    result = reader.readtext(ip)
+
+    # Extract the recognized text from the result and return it as a text (str)
+    text = ' '.join([r[1] for r in result])
+
+    return text
+
+# Call the function 
+# Just an example
+image_path = "Assignment.png"
+recognized_text = recognize_text(image_path)
+print(recognized_text)
 
