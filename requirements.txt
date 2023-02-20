@@ -16,3 +16,5 @@ toml==0.10.2
 tzdata==2022.7
 wheel==0.37.1
 wincertstore==0.2
+pytesseract==0.3.10
+opencv-python==4.7.0.68
