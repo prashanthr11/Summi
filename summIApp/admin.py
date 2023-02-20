@@ -3,6 +3,7 @@ from .models import UserUploadedFiles
 
 # Register your models here.
 class UserUploadedFilesAdmin(admin.ModelAdmin):
-    fields = ["user", "file_path", "uploaded_datetime"]
+    ordering = ["-uploaded_datetime"]
+    list_display = ["uuid", "user", "uploaded_datetime", "file_path"]
 
-admin.site.register(UserUploadedFiles)
+admin.site.register(UserUploadedFiles, UserUploadedFilesAdmin)

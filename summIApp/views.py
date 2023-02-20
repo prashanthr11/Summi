@@ -2,6 +2,7 @@ from rest_framework.decorators import api_view
 from django.http import JsonResponse
 from .models import UserUploadedFiles
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.models import User
 import logging
 from .utils import *
 from summI.settings import MEDIA_PATH
@@ -20,19 +21,28 @@ def UserUploadedFilesView(request):
             uploaded_file = request.FILES['uploaded_file']
             is_valid_file = True
 
-            print(dir(uploaded_file))
-            print(uploaded_file.name)
             is_valid_file = validate_file(uploaded_file.file)
 
-            print("is_valid_file ", is_valid_file)
-
-            if is_valid_file:
+            if not is_valid_file:
                 return JsonResponse({
                     "status": 200,
-                    "message": "file format supported",
+                    "message": "file format not supported",
                 })
 
             file_name = strip_html(uploaded_file.name)
+
+            if user.is_authenticated:
+                user = User.objects.filter(user=user)[0]
+            else:
+                user = User.objects.filter(username="guest_user")
+                if not len(user):
+                    user = User.objects.create(
+                        username="guest_user", is_superuser=False, is_staff=False)
+                    user.set_password("guest_user@123!")
+                    user.save()
+                else:
+                    user = user[0]
+                    
             uploaded_file_object = UserUploadedFiles.objects.create(
                 user=user, file_name=file_name)
             file_path = os.path.join(

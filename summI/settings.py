@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
+from decouple import config
 from pathlib import Path
 from os import path, makedirs
 
@@ -21,14 +22,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 
-from decouple import config
 SECRET_KEY = config("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 ALLOWED_HOSTS = ['127.0.0.1']
-
 
 
 # for auth
@@ -60,7 +59,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    'request_logging.middleware.LoggingMiddleware',
+    # 'request_logging.middleware.LoggingMiddleware',
 ]
 
 ROOT_URLCONF = "summI.urls"
@@ -95,10 +94,8 @@ DATABASES = {
 }
 
 
-MEDIA_PATH = path.join(BASE_DIR, "media/")
+MEDIA_PATH = path.join(BASE_DIR, "media")
 
-if not path.exists(MEDIA_PATH):
-    makedirs(MEDIA_PATH)
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -146,43 +143,38 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
-        'verbose': {
-            "format": "%(asctime)s.%(msecs)03d | %(thread)d | %(levelname)s | %(module)s | %(name)s " "| %(message)s",
-            'datefmt': '%Y-%m-%dT%H:%M:%S'},
-        'simple': {
-            'format': '%(levelname)s %(message)s'},
+        'console': {
+            'format': '%(name)-12s %(levelname)-8s %(message)s'
+        },
+        'file': {
+            'format': '%(asctime)s %(name)-12s %(levelname)-8s %(message)s'
+        }
     },
     'handlers': {
         'file': {
-            'level': 'ERROR',
+            'level': 'DEBUG',
             'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filename': 'logs/error_logs/error.log',
+            'filename': 'logs/general.log',
             'backupCount': 10,
             'when': 'midnight',
-            'formatter': 'verbose'
-        },
-        'reqlog': {
-            'level': 'INFO',
-            'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filename': 'logs/req_logs/req.log',
-            'backupCount': 3,
-            'when': 'midnight',
-            'formatter': 'verbose'
+            'formatter': 'file'
         },
         'console': {
+            'level': 'INFO',
             'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
+            'formatter': 'console',
         }
     },
     'loggers': {
-        'django': {
-            'handlers': ['console', 'file'],
+        '': {
+            'handlers': ['file'],
             'propagate': False,
-            'level': 'INFO'
+            'level': 'DEBUG'
         },
-        'django.request': {
-            'handlers': ['console','reqlog','file'],
-            'level': 'INFO',
-            'propagate': False},
-    }
+        # 'django.request': {
+        #     'handlers': ['console','file'],
+        #     'level': 'DEBUG',
+        #     'propagate': False
+        #     },
+    },
 }
