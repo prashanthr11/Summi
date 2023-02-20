@@ -9,3 +9,4 @@ wheel==0.37.1
 wincertstore==0.2
 pytesseract==0.3.10
 opencv-python==4.7.0.68
+easyocr==1.6.2
