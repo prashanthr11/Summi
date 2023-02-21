@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 import logging
 from .utils import *
 from summI.settings import MEDIA_PATH
+from .constants import *
 
 # logging
 logger = logging.getLogger("django")
@@ -19,20 +20,26 @@ def UserUploadedFilesView(request):
         try:
             user = request.user
             uploaded_file = request.FILES['uploaded_file']
-            is_valid_file = True
+            is_valid_file = False
+
+            if uploaded_file.size > max_file_size:
+                return JsonResponse({
+                    "status": 401,
+                    "message": f"file size cannot be higher than {max_file_size//1024**2} MB",
+                })
 
             is_valid_file = validate_file(uploaded_file.file)
 
             if not is_valid_file:
                 return JsonResponse({
-                    "status": 200,
+                    "status": 300,
                     "message": "file format not supported",
                 })
 
             file_name = strip_html(uploaded_file.name)
 
             if user.is_authenticated:
-                user = User.objects.filter(user=user)[0]
+                user = User.objects.filter(user=user).first()
             else:
                 user = User.objects.filter(username="guest_user")
                 if not len(user):
@@ -41,8 +48,8 @@ def UserUploadedFilesView(request):
                     user.set_password("guest_user@123!")
                     user.save()
                 else:
-                    user = user[0]
-                    
+                    user = user.first()
+
             uploaded_file_object = UserUploadedFiles.objects.create(
                 user=user, file_name=file_name)
             file_path = os.path.join(
