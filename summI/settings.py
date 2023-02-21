@@ -95,6 +95,7 @@ DATABASES = {
 
 
 MEDIA_PATH = path.join(BASE_DIR, "media")
+MEDIA_URL = "/media/"
 
 
 # Password validation

@@ -79,3 +79,29 @@ def UserUploadedFilesView(request):
                 "status": 500,
                 "message": str(e),
             })
+
+
+@csrf_exempt
+@api_view(["POST"])
+def GetUserUploadedFileView(request):
+    if request.method == "POST":
+        try:
+            image_uuid = request.POST.get('image_uuid', None)
+
+            if image_uuid is None:
+                return JsonResponse({
+                    "status": 300,
+                    "message": "Missing Image ID"
+                })
+
+            user_uploaded_file_obj = UserUploadedFiles.objects.filter(uuid=image_uuid).first()
+
+            if not user_uploaded_file_obj:
+                return JsonResponse({
+                    "status": 301,
+                    "message": "Invalid Image ID"
+                })
+
+            
+        except Exception as e:
+            logger.error(str(e))
