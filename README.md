@@ -1,3 +1,7 @@
-# Summi
 
-Deployment will be in Ci Keys
+# Summi
+- Shahin
+- minrui_hu
+- Sara Rad
+- Wasema Nooren
+
