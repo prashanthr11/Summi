@@ -61,8 +61,8 @@ def UserUploadedFilesView(request):
             if create_dirs(file_path):
                 file_path = os.path.join(file_path, file_name)
                 try:
-                    tmp_image = Image.open(uploaded_file.file)
-                    tmp_image.save(file_path)
+                    user_image = Image.open(uploaded_file.file)
+                    user_image.save(file_path)
                 except Exception as e:
                     logger.error(str(e))
                     return JsonResponse({
@@ -92,27 +92,33 @@ def UserUploadedFilesView(request):
             })
 
 
-@csrf_exempt
-@api_view(["POST"])
-def GetUserUploadedFileView(request):
-    if request.method == "POST":
-        try:
-            image_uuid = request.POST.get('image_uuid', None)
+# @csrf_exempt
+# @api_view(["POST"])
+# def GetUserUploadedFileView(request):
+#     if request.method == "POST":
+#         try:
+#             image_uuid = request.POST.get('image_uuid', None)
 
-            if image_uuid is None:
-                return JsonResponse({
-                    "status": 300,
-                    "message": "Missing Image ID"
-                })
+#             if image_uuid is None:
+#                 return JsonResponse({
+#                     "status": 300,
+#                     "message": "Missing Image ID"
+#                 })
 
-            user_uploaded_file_obj = UserUploadedFiles.objects.filter(uuid=image_uuid).first()
+#             user_uploaded_file_obj = UserUploadedFiles.objects.filter(uuid=image_uuid).first()
 
-            if not user_uploaded_file_obj:
-                return JsonResponse({
-                    "status": 301,
-                    "message": "Invalid Image ID"
-                })
+#             if not user_uploaded_file_obj:
+#                 return JsonResponse({
+#                     "status": 301,
+#                     "message": "Invalid Image ID"
+#                 })
+            
+#             return JsonResponse({
+#                 "status": 200,
+#                 "message": "success",
+#                 "image_url": MEDIA_URL + str(user_uploaded_file_obj.uuid) + "/" + str(user_uploaded_file_obj.file_name),
+#             })
 
             
-        except Exception as e:
-            logger.error(str(e))
+#         except Exception as e:
+#             logger.error(str(e))
