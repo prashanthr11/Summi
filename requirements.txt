@@ -5,7 +5,7 @@ Django==4.1.6
 django-request-logging==0.7.5
 djangorestframework==3.14.0
 pathvalidate==2.5.2
-Pillow==9.4.0
+Pillow==7.1.2
 pip==22.3.1
 pycodestyle==2.10.0
 python-decouple==3.7
@@ -17,7 +17,9 @@ tzdata==2022.7
 wheel==0.37.1
 wincertstore==0.2
 pytesseract==0.3.10
-opencv-python==4.7.0.72
 easyocr==1.6.2
-numpy==1.24.2
-Pillow==9.4.0
+numpy==1.22.4
+gensim==3.6.0
+opencv-contrib-python==4.6.0.66
+opencv-python==4.6.0.66
+opencv-python-headless==4.5.4.60
