@@ -8,5 +8,7 @@ tzdata==2022.7
 wheel==0.37.1
 wincertstore==0.2
 pytesseract==0.3.10
-opencv-python==4.7.0.68
+opencv-python==4.7.0.72
 easyocr==1.6.2
+numpy==1.24.2
+Pillow==9.4.0
