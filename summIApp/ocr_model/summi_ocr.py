@@ -15,7 +15,7 @@ def recognize_text(uploaded_image):
         reader = easyocr.Reader(['en'])
 
         # Use the reader to detect the text in the photo
-        result = reader.readtext(image)
+        result = reader.readtext(image_path)
 
         # Extract the recognized text from the result and return it as a text (str)
         text = ' '.join([r[1] for r in result])

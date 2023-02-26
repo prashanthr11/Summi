@@ -9,6 +9,7 @@ from summI.settings import MEDIA_PATH, MEDIA_URL
 from .constants import *
 from PIL import Image
 
+from ocr_model.summi_ocr import recognize_text
 
 
 # logging
@@ -124,6 +125,8 @@ def UserUploadedFilesView(request):
             
 #         except Exception as e:
 #             logger.error(str(e))
+
+
 @csrf_exempt
 @api_view(["POST"])
 def GetSummarisedTextView(request):
@@ -139,22 +142,29 @@ def GetSummarisedTextView(request):
 
             user_uploaded_file_obj = UserUploadedFiles.objects.filter(uuid=image_uuid).first()
             
-            resp = recognize_text(uploaded_file_object.file_path)
-            
             if not user_uploaded_file_obj:
                 return JsonResponse({
                     "status": 301,
-                    "message": "Invalid Image ID"
+                    "message": "Invalid Image ID or Uploaded File object not found"
                 })
+
+            detected_text = recognize_text(user_uploaded_file_obj.file_path)
             
-            
-            if len(resp):
+            if len(detected_text):
                 return JsonResponse({
                     "status": 200,
-                    "message": resp,
-                    "image_url": MEDIA_URL + str(user_uploaded_file_obj.uuid) + "/" + str(user_uploaded_file_obj.file_name),
+                    "message": detected_text,
+            })
+
+            return JsonResponse({
+                "status": 302,
+                "message": "Empty file or empty text detected"
             })
 
             
         except Exception as e:
             logger.error(str(e))
+            return JsonResponse({
+                "status": 500,
+                "message": str(e),
+            })
