@@ -9,7 +9,7 @@ from summI.settings import MEDIA_PATH, MEDIA_URL
 from .constants import *
 from PIL import Image
 
-from ocr_model.summi_ocr import recognize_text
+from .ocr_model.summi_ocr import recognize_text
 
 
 # logging
