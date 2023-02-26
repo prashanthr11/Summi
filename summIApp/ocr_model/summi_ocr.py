@@ -1,6 +1,10 @@
 import easyocr
 import PIL
 import os
+import logging
+
+
+logger = logging.getLogger("django")
 
 def recognize_text(uploaded_image):
     text = ""
@@ -22,4 +26,5 @@ def recognize_text(uploaded_image):
 
         return text.strip()
     except Exception as e:
+        logging.error(str(e))
         return text
