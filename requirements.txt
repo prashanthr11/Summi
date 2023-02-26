@@ -54,7 +54,6 @@ ninja==1.11.1
 notebook==6.5.2
 notebook_shim==0.2.2
 numpy==1.24.2
-opencv-contrib-python==4.6.0.66
 opencv-python==4.5.5.64
 packaging==23.0
 pandocfilters==1.5.0
