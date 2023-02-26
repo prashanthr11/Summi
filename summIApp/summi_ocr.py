@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import easyocr
 import PIL
 import os
