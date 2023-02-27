@@ -9,6 +9,9 @@ from summI.settings import MEDIA_PATH, MEDIA_URL
 from .constants import *
 from PIL import Image
 
+from .ocr_model.summi_ocr import recognize_text
+
+
 # logging
 logger = logging.getLogger("django")
 
@@ -122,3 +125,46 @@ def UserUploadedFilesView(request):
             
 #         except Exception as e:
 #             logger.error(str(e))
+
+
+@csrf_exempt
+@api_view(["POST"])
+def GetSummarisedTextView(request):
+    if request.method == "POST":
+        try:
+            image_uuid = request.POST.get('image_uuid', None)
+
+            if image_uuid is None:
+                return JsonResponse({
+                    "status": 300,
+                    "message": "Missing Image ID"
+                })
+
+            user_uploaded_file_obj = UserUploadedFiles.objects.filter(uuid=image_uuid).first()
+            
+            if not user_uploaded_file_obj:
+                return JsonResponse({
+                    "status": 301,
+                    "message": "Invalid Image ID or Uploaded File object not found"
+                })
+
+            detected_text = recognize_text(user_uploaded_file_obj.file_path)
+            
+            if len(detected_text):
+                return JsonResponse({
+                    "status": 200,
+                    "message": detected_text,
+            })
+
+            return JsonResponse({
+                "status": 302,
+                "message": "Empty file or empty text detected"
+            })
+
+            
+        except Exception as e:
+            logger.error(str(e))
+            return JsonResponse({
+                "status": 500,
+                "message": str(e),
+            })
