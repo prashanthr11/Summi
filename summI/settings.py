@@ -25,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ["127.0.0.1", "localhost", "18.224.179.137"]
 
@@ -122,7 +122,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "America/Los_Angeles"
 
 USE_I18N = True
 
@@ -181,3 +181,10 @@ LOGGING = {
         #     },
     },
 }
+
+
+if DEBUG:
+    INSTALLED_APPS += ["corsheaders"]
+    MIDDLEWARE += ["corsheaders.middleware.CorsMiddleware"]
+    CORS_ALLOW_ALL_ORIGINS = True
+    
