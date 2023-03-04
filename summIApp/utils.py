@@ -17,9 +17,13 @@ def create_dirs(path):
 
 def sensor(path):
     image_type = imghdr.what(path)
-    if  image_type == 'tiff':
-        return convert_tiff_to_png(path)
-    elif image_type == 'webp' :
-        return convert_webp_to_png(path)
-    else:
-        return None
+    try:
+        if  image_type == 'tiff':
+            return convert_tiff_to_png(path)
+        elif image_type == 'webp' :
+            return convert_webp_to_png(path)
+        else:
+            return None
+    except Exception as e:
+        logger.error(str(e))
+        return False
