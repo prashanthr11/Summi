@@ -5,8 +5,12 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
 import logging
 from .utils import *
-from summI.settings import MEDIA_PATH
+from summI.settings import MEDIA_PATH, MEDIA_URL
 from .constants import *
+from PIL import Image
+
+from .ocr_model.summi_ocr import recognize_text
+
 
 # logging
 logger = logging.getLogger("django")
@@ -21,6 +25,7 @@ def UserUploadedFilesView(request):
             user = request.user
             uploaded_file = request.FILES['uploaded_file']
             is_valid_file = False
+            is_public_file = True
 
             if uploaded_file.size > max_file_size:
                 return JsonResponse({
@@ -40,6 +45,7 @@ def UserUploadedFilesView(request):
 
             if user.is_authenticated:
                 user = User.objects.filter(user=user).first()
+                is_public_file = False
             else:
                 user = User.objects.filter(username="guest_user")
                 if not len(user):
@@ -51,14 +57,21 @@ def UserUploadedFilesView(request):
                     user = user.first()
 
             uploaded_file_object = UserUploadedFiles.objects.create(
-                user=user, file_name=file_name)
+                user=user, file_name=file_name, is_public_file=is_public_file)
             file_path = os.path.join(
                 MEDIA_PATH, str(uploaded_file_object.uuid))
 
             if create_dirs(file_path):
                 file_path = os.path.join(file_path, file_name)
-                with open(file_path, "wb") as f:
-                    f.write(uploaded_file.file.read())
+                try:
+                    user_image = Image.open(uploaded_file.file)
+                    user_image.save(file_path)
+                except Exception as e:
+                    logger.error(str(e))
+                    return JsonResponse({
+                        "status": 301,
+                        "message": "Cannot able to save the file to the disk",
+                    })
 
                 uploaded_file_object.file_path = file_path
                 uploaded_file_object.save()
@@ -72,7 +85,83 @@ def UserUploadedFilesView(request):
                 "status": 200,
                 "message": "success",
                 "image_id": str(uploaded_file_object.uuid),
+                "image_url": MEDIA_URL + str(uploaded_file_object.uuid) + "/" + str(uploaded_file_object.file_name),
             })
+        except Exception as e:
+            logger.error(str(e))
+            return JsonResponse({
+                "status": 500,
+                "message": str(e),
+            })
+
+
+# @csrf_exempt
+# @api_view(["POST"])
+# def GetUserUploadedFileView(request):
+#     if request.method == "POST":
+#         try:
+#             image_uuid = request.POST.get('image_uuid', None)
+
+#             if image_uuid is None:
+#                 return JsonResponse({
+#                     "status": 300,
+#                     "message": "Missing Image ID"
+#                 })
+
+#             user_uploaded_file_obj = UserUploadedFiles.objects.filter(uuid=image_uuid).first()
+
+#             if not user_uploaded_file_obj:
+#                 return JsonResponse({
+#                     "status": 301,
+#                     "message": "Invalid Image ID"
+#                 })
+            
+#             return JsonResponse({
+#                 "status": 200,
+#                 "message": "success",
+#                 "image_url": MEDIA_URL + str(user_uploaded_file_obj.uuid) + "/" + str(user_uploaded_file_obj.file_name),
+#             })
+
+            
+#         except Exception as e:
+#             logger.error(str(e))
+
+
+@csrf_exempt
+@api_view(["POST"])
+def GetSummarisedTextView(request):
+    if request.method == "POST":
+        try:
+            image_uuid = request.POST.get('image_uuid', None)
+
+            if image_uuid is None:
+                return JsonResponse({
+                    "status": 300,
+                    "message": "Missing Image ID"
+                })
+
+            user_uploaded_file_obj = UserUploadedFiles.objects.filter(uuid=image_uuid).first()
+            
+            if not user_uploaded_file_obj:
+                return JsonResponse({
+                    "status": 301,
+                    "message": "Invalid Image ID or Uploaded File object not found"
+                })
+
+            detected_text = recognize_text(user_uploaded_file_obj.file_path)
+            
+            if len(detected_text):
+                return JsonResponse({
+                    "status": 200,
+                    "message": detected_text,
+            })
+
+            return JsonResponse({
+                "status": 302,
+                "message": "Empty file or empty text detected"
+            })
+
+            
         except Exception as e:
             logger.error(str(e))
             return JsonResponse({
