@@ -56,10 +56,9 @@ def UserUploadedFilesView(request):
                 else:
                     user = user.first()
 
-            image_type = imghdr.what(uploaded_file.file)
-            print("--------------------------------------------", image_type)
-            if image_type in supported_converters:
-                converted_file = convert_to_png(uploaded_file.file)
+            user_image = Image.open(uploaded_file.file)
+            if user_image.format.upper() in supported_converters:
+                converted_file = convert_to_png(user_image)
 
                 if converted_file is None:
                     return JsonResponse({
@@ -67,8 +66,8 @@ def UserUploadedFilesView(request):
                         "message": "Problem with the converter",
                     })
 
-                uploaded_file.file = converted_file
-                file_name = strip_html(converted_file.filename)
+                user_image = Image.open(converted_file)
+                file_name = "_".join(file_name.split(".")[:-1]) + ".png"
 
             uploaded_file_object = UserUploadedFiles.objects.create(
                 user=user, file_name=file_name, is_public_file=is_public_file)
@@ -78,10 +77,9 @@ def UserUploadedFilesView(request):
             if create_dirs(file_path):
                 file_path = os.path.join(file_path, file_name)
                 try:
-                    user_image = Image.open(uploaded_file.file)
                     user_image.save(file_path)
                 except Exception as e:
-                    logger.error(str(e))
+                    logger.error(traceback.format_exc())
                     return JsonResponse({
                         "status": 301,
                         "message": "Cannot able to save the file to the disk",
@@ -95,6 +93,13 @@ def UserUploadedFilesView(request):
                     "message": "cannot able to create a dir in media"
                 })
 
+            try:
+                os.remove(converted_file)
+            except UnboundLocalError:
+                pass
+            except Exception as e:
+                logger.error(traceback.format_exc())
+
             return JsonResponse({
                 "status": 200,
                 "message": "success",
@@ -102,7 +107,7 @@ def UserUploadedFilesView(request):
                 "image_url": MEDIA_URL + str(uploaded_file_object.uuid) + "/" + str(uploaded_file_object.file_name),
             })
         except Exception as e:
-            logger.error(str(e))
+            logger.error(traceback.format_exc())
             return JsonResponse({
                 "status": 500,
                 "message": str(e),
@@ -138,7 +143,7 @@ def UserUploadedFilesView(request):
 
 
 #         except Exception as e:
-#             logger.error(str(e))
+#             logger.error(traceback.format_exc())
 
 
 @csrf_exempt
@@ -177,7 +182,7 @@ def GetSummarisedTextView(request):
             })
 
         except Exception as e:
-            logger.error(str(e))
+            logger.error(traceback.format_exc())
             return JsonResponse({
                 "status": 500,
                 "message": str(e),
