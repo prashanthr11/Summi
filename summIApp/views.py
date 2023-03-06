@@ -8,7 +8,7 @@ from .utils import *
 from summI.settings import MEDIA_PATH, MEDIA_URL
 from .constants import *
 from PIL import Image
-
+import imghdr
 from .ocr_model.summi_ocr import recognize_text
 
 
@@ -55,6 +55,20 @@ def UserUploadedFilesView(request):
                     user.save()
                 else:
                     user = user.first()
+
+            image_type = imghdr.what(uploaded_file.file)
+            print("--------------------------------------------", image_type)
+            if image_type in supported_converters:
+                converted_file = convert_to_png(uploaded_file.file)
+
+                if converted_file is None:
+                    return JsonResponse({
+                        "status": 302,
+                        "message": "Problem with the converter",
+                    })
+
+                uploaded_file.file = converted_file
+                file_name = strip_html(converted_file.filename)
 
             uploaded_file_object = UserUploadedFiles.objects.create(
                 user=user, file_name=file_name, is_public_file=is_public_file)
@@ -115,14 +129,14 @@ def UserUploadedFilesView(request):
 #                     "status": 301,
 #                     "message": "Invalid Image ID"
 #                 })
-            
+
 #             return JsonResponse({
 #                 "status": 200,
 #                 "message": "success",
 #                 "image_url": MEDIA_URL + str(user_uploaded_file_obj.uuid) + "/" + str(user_uploaded_file_obj.file_name),
 #             })
 
-            
+
 #         except Exception as e:
 #             logger.error(str(e))
 
@@ -140,8 +154,9 @@ def GetSummarisedTextView(request):
                     "message": "Missing Image ID"
                 })
 
-            user_uploaded_file_obj = UserUploadedFiles.objects.filter(uuid=image_uuid).first()
-            
+            user_uploaded_file_obj = UserUploadedFiles.objects.filter(
+                uuid=image_uuid).first()
+
             if not user_uploaded_file_obj:
                 return JsonResponse({
                     "status": 301,
@@ -149,19 +164,18 @@ def GetSummarisedTextView(request):
                 })
 
             detected_text = recognize_text(user_uploaded_file_obj.file_path)
-            
+
             if len(detected_text):
                 return JsonResponse({
                     "status": 200,
                     "message": detected_text,
-            })
+                })
 
             return JsonResponse({
                 "status": 302,
                 "message": "Empty file or empty text detected"
             })
 
-            
         except Exception as e:
             logger.error(str(e))
             return JsonResponse({

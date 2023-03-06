@@ -1,11 +1,12 @@
 import os
 import logging
-import imghdr
 from .utils_validations import *
-from .ocr_model.webptojpeg import convert_webp_to_png
-from .ocr_model.tifftopng import convert_tiff_to_png
+from PIL import Image
+from uuid import uuid4
 
 logger = logging.getLogger("django")
+
+
 def create_dirs(path):
     try:
         if not os.path.exists(path):
@@ -15,15 +16,19 @@ def create_dirs(path):
         logger.error(str(e))
         return False
 
-def sensor(path):
+
+def convert_to_png(tiff_file):
     try:
-        image_type = imghdr.what(path)
-        if  image_type == 'tiff':
-            return convert_tiff_to_png(path)
-        elif image_type == 'webp':
-            return convert_webp_to_png(path)
-        else:
-            return None
+        # Open the tiff image using Image.open()
+        img = Image.open(tiff_file)
+        # Get the file name without extension
+        file_name = os.path.splitext(tiff_file)[0]
+        # Add '.png' to the file name
+        temp_folder = str(uuid4())
+        png_file = temp_folder + file_name + '.png'
+        # Save the image as png using Image.save()
+        img.save(png_file, format="png", lossless=True)
+        return img
     except Exception as e:
         logger.error(str(e))
-        return None
+    return None
