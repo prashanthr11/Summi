@@ -19,15 +19,16 @@ def create_dirs(path):
         return False
 
 
-def convert_to_png(image_obj):
+def convert_to_png(uploaded_file, file_path):
     try:
-        temporary_path = os.path.join(BASE_DIR, TEMP_DIR)
-        if not os.path.exists(temporary_path):
-            os.mkdir(temporary_path)
+        user_file = Image.open(uploaded_file.file)
 
-        file_path = os.path.join(temporary_path, str(uuid4()) + ".png")
-        image_obj.save(file_path, format="png", lossless=True)
-        return file_path
+        if create_dirs(file_path):
+            new_file_name = "_".join(
+                uploaded_file.name.split(".")[:-1]) + ".png"
+            file_path = os.path.join(file_path, new_file_name)
+            user_file.save(file_path, format="png", lossless=True)
+            return file_path
     except Exception as e:
         logger.error(traceback.format_exc())
     return None
