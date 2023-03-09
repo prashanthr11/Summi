@@ -1,29 +1,34 @@
 import os
 import logging
-import imghdr
 from .utils_validations import *
-from .ocr_model.webptojpeg import convert_webp_to_png
-from .ocr_model.tifftopng import convert_tiff_to_png
+from uuid import uuid4
+from .constants import *
+import traceback
+from summI.settings import BASE_DIR
 
 logger = logging.getLogger("django")
+
+
 def create_dirs(path):
     try:
         if not os.path.exists(path):
             os.makedirs(path)
         return True
     except Exception as e:
-        logger.error(str(e))
+        logger.error(traceback.format_exc())
         return False
 
-def sensor(path):
+
+def convert_to_png(uploaded_file, file_path):
     try:
-        image_type = imghdr.what(path)
-        if  image_type == 'tiff':
-            return convert_tiff_to_png(path)
-        elif image_type == 'webp':
-            return convert_webp_to_png(path)
-        else:
-            return None
+        user_file = Image.open(uploaded_file.file)
+
+        if create_dirs(file_path):
+            new_file_name = "_".join(
+                uploaded_file.name.split(".")[:-1]) + ".png"
+            file_path = os.path.join(file_path, new_file_name)
+            user_file.save(file_path, format="png", lossless=True)
+            return file_path
     except Exception as e:
-        logger.error(str(e))
-        return None
+        logger.error(traceback.format_exc())
+    return None
