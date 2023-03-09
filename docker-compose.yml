@@ -1,0 +1,11 @@
+version: "3"
+
+services:
+  web:
+    volumes:
+      - .:/summI
+    build: .
+    restart: always
+    command: python manage.py runserver 0.0.0.0:8080
+    ports:
+      - "8000:8080"
