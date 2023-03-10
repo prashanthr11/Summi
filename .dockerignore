@@ -1,0 +1,5 @@
+.github/*
+Lib/
+*.ipynb
+Dockerfile
+.git
