@@ -8,7 +8,6 @@ from .utils import *
 from summI.settings import MEDIA_PATH, MEDIA_URL
 from .constants import *
 from PIL import Image
-
 from .ocr_model.summi_ocr import recognize_text
 
 
@@ -61,17 +60,35 @@ def UserUploadedFilesView(request):
             file_path = os.path.join(
                 MEDIA_PATH, str(uploaded_file_object.uuid))
 
-            if create_dirs(file_path):
-                file_path = os.path.join(file_path, file_name)
-                try:
-                    user_image = Image.open(uploaded_file.file)
-                    user_image.save(file_path)
-                except Exception as e:
-                    logger.error(str(e))
+            with Image.open(uploaded_file.file) as f:
+                image_format = f.format.upper()
+
+            if image_format in supported_converters:
+                converted_image_file_path = convert_to_png(
+                    uploaded_file, file_path)
+
+                if converted_image_file_path is None:
                     return JsonResponse({
-                        "status": 301,
-                        "message": "Cannot able to save the file to the disk",
+                        "status": 302,
+                        "message": "Problem with the converter",
                     })
+
+                uploaded_file_object.file_name = os.path.split(
+                    converted_image_file_path)[1]
+                file_path = converted_image_file_path
+
+            if create_dirs(file_path):
+                if image_format not in supported_converters:
+                    file_path = os.path.join(file_path, file_name)
+                    try:
+                        user_image = Image.open(uploaded_file.file)
+                        user_image.save(file_path)
+                    except Exception as e:
+                        logger.error(traceback.format_exc())
+                        return JsonResponse({
+                            "status": 301,
+                            "message": "Cannot able to save the file to the disk",
+                        })
 
                 uploaded_file_object.file_path = file_path
                 uploaded_file_object.save()
@@ -88,7 +105,7 @@ def UserUploadedFilesView(request):
                 "image_url": MEDIA_URL + str(uploaded_file_object.uuid) + "/" + str(uploaded_file_object.file_name),
             })
         except Exception as e:
-            logger.error(str(e))
+            logger.error(traceback.format_exc())
             return JsonResponse({
                 "status": 500,
                 "message": str(e),
@@ -115,16 +132,16 @@ def UserUploadedFilesView(request):
 #                     "status": 301,
 #                     "message": "Invalid Image ID"
 #                 })
-            
+
 #             return JsonResponse({
 #                 "status": 200,
 #                 "message": "success",
 #                 "image_url": MEDIA_URL + str(user_uploaded_file_obj.uuid) + "/" + str(user_uploaded_file_obj.file_name),
 #             })
 
-            
+
 #         except Exception as e:
-#             logger.error(str(e))
+#             logger.error(traceback.format_exc())
 
 
 @csrf_exempt
@@ -140,8 +157,9 @@ def GetSummarisedTextView(request):
                     "message": "Missing Image ID"
                 })
 
-            user_uploaded_file_obj = UserUploadedFiles.objects.filter(uuid=image_uuid).first()
-            
+            user_uploaded_file_obj = UserUploadedFiles.objects.filter(
+                uuid=image_uuid).first()
+
             if not user_uploaded_file_obj:
                 return JsonResponse({
                     "status": 301,
@@ -149,21 +167,20 @@ def GetSummarisedTextView(request):
                 })
 
             detected_text = recognize_text(user_uploaded_file_obj.file_path)
-            
+
             if len(detected_text):
                 return JsonResponse({
                     "status": 200,
                     "message": detected_text,
-            })
+                })
 
             return JsonResponse({
                 "status": 302,
                 "message": "Empty file or empty text detected"
             })
 
-            
         except Exception as e:
-            logger.error(str(e))
+            logger.error(traceback.format_exc())
             return JsonResponse({
                 "status": 500,
                 "message": str(e),
