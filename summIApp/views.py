@@ -8,7 +8,6 @@ from .utils import *
 from summI.settings import MEDIA_PATH, MEDIA_URL
 from .constants import *
 from PIL import Image
-from .ocr_model.summi_ocr import recognize_text
 
 
 # logging
@@ -166,7 +165,7 @@ def GetSummarisedTextView(request):
                     "message": "Invalid Image ID or Uploaded File object not found"
                 })
 
-            detected_text = recognize_text(user_uploaded_file_obj.file_path)
+            detected_text = recognize_text_wrapper(user_uploaded_file_obj.file_path)
 
             if len(detected_text):
                 return JsonResponse({
