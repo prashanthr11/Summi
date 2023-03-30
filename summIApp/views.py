@@ -8,6 +8,7 @@ from .utils import *
 from summI.settings import MEDIA_PATH, MEDIA_URL
 from .constants import *
 from PIL import Image
+import re
 
 
 # logging
@@ -166,11 +167,12 @@ def GetSummarisedTextView(request):
                 })
 
             detected_text = recognize_text_wrapper(user_uploaded_file_obj.file_path)
+            cleaned_detected_text = re.sub('[^A-Za-z0-9]+', ' ', detected_text)
 
-            if len(detected_text):
+            if len(cleaned_detected_text):
                 return JsonResponse({
                     "status": 200,
-                    "message": detected_text,
+                    "message": cleaned_detected_text,
                 })
 
             return JsonResponse({
