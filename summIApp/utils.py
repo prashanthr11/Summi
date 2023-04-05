@@ -23,14 +23,13 @@ def create_dirs(path):
 
 def convert_to_png(uploaded_file, file_path):
     try:
-        user_file = Image.open(uploaded_file.file)
-
-        if create_dirs(file_path):
-            new_file_name = "_".join(
-                uploaded_file.name.split(".")[:-1]) + ".png"
-            file_path = os.path.join(file_path, new_file_name)
-            user_file.save(file_path, format="png", lossless=True)
-            return file_path
+        with Image.open(uploaded_file.file) as user_file:
+            if create_dirs(file_path):
+                new_file_name = "_".join(
+                    uploaded_file.name.split(".")[:-1]) + ".png"
+                file_path = os.path.join(file_path, new_file_name)
+                user_file.save(file_path, format="png", lossless=True)
+                return file_path
     except Exception as e:
         logger.error(traceback.format_exc())
     return None
