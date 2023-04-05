@@ -9,7 +9,6 @@ from summI.settings import MEDIA_PATH, MEDIA_URL
 from .constants import *
 from PIL import Image
 import re
-from .ocr_model.summi_ocr import recognize_text
 from .upload_file import imgbb_upload
 
 # logging
@@ -33,8 +32,8 @@ def UserUploadedFilesView(request):
                     "message": f"file size cannot be higher than {max_file_size//1024**2} MB",
                 })
 
-            file_obj = uploaded_file.file
-            is_valid_file = validate_file(file_obj)
+            file_contents = uploaded_file.file.read()
+            is_valid_file = validate_file(uploaded_file.file)
 
             if not is_valid_file:
                 return JsonResponse({
@@ -109,13 +108,13 @@ def UserUploadedFilesView(request):
                     "image_url": MEDIA_URL + str(uploaded_file_object.uuid) + "/" + str(uploaded_file_object.file_name),
                 })
             else:
-                api_response = imgbb_upload(file_obj)
+                api_response = imgbb_upload(file_contents)
 
-                if api_response["status_code"] == 200:
+                if api_response["status"] == 200:
                     image_url = api_response["data"]["url"]
                     uploaded_file_object.file_path = image_url
                     uploaded_file_object.save()
-                    
+
                     return JsonResponse({
                         "status": 200,
                         "message": "success",
@@ -189,7 +188,8 @@ def GetSummarisedTextView(request):
                     "message": "Invalid Image ID or Uploaded File object not found"
                 })
 
-            detected_text = recognize_text_wrapper(user_uploaded_file_obj.file_path)
+            detected_text = recognize_text_wrapper(
+                user_uploaded_file_obj.file_path)
             cleaned_detected_text = re.sub('[^A-Za-z0-9]+', ' ', detected_text)
 
             if len(cleaned_detected_text):
