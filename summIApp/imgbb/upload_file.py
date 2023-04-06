@@ -3,7 +3,7 @@ from decouple import config
 import requests
 import logging
 import traceback
-from .constants import imgbb_url
+from ..constants import imgbb_url
 
 
 logger = logging.getLogger("django")
