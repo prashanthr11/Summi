@@ -44,3 +44,14 @@ def recognize_text_wrapper(file_path):
     except Exception as e:
         logger.error(traceback.format_exc())
         return
+
+
+def create_dir_in_temporary_media():
+    try:
+        temp_path = os.path.join(BASE_DIR, temporary_media, str(uuid4()))
+        if not os.path.exists(temp_path):
+            os.makedirs(temp_path)
+        return temp_path
+    except Exception as e:
+        logger.error(traceback.format_exc())
+        return ""

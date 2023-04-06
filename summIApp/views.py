@@ -9,7 +9,8 @@ from summI.settings import MEDIA_PATH, MEDIA_URL
 from .constants import *
 from PIL import Image
 import re
-from .upload_file import imgbb_upload
+from .imgbb.upload_file import imgbb_upload
+from .imgbb.download_file import imgbb_download_file
 
 # logging
 logger = logging.getLogger("django")
@@ -113,6 +114,7 @@ def UserUploadedFilesView(request):
                 if api_response["status"] == 200:
                     image_url = api_response["data"]["url"]
                     uploaded_file_object.file_path = image_url
+                    uploaded_file_object.is_file_uploaded_on_imgbb = True
                     uploaded_file_object.save()
 
                     return JsonResponse({
@@ -188,8 +190,16 @@ def GetSummarisedTextView(request):
                     "message": "Invalid Image ID or Uploaded File object not found"
                 })
 
-            detected_text = recognize_text_wrapper(
-                user_uploaded_file_obj.file_path)
+            file_path = user_uploaded_file_obj.file_path
+
+            if user_uploaded_file_obj.is_file_uploaded_on_imgbb:
+                temp_path = create_dir_in_temporary_media()
+                temp_path = os.path.join(temp_path, str(uuid4()) + ".png")
+                imgbb_download_file(
+                    user_uploaded_file_obj.file_path, temp_path)
+                file_path = temp_path
+
+            detected_text = recognize_text_wrapper(file_path)
             cleaned_detected_text = re.sub('[^A-Za-z0-9]+', ' ', detected_text)
 
             if len(cleaned_detected_text):
