@@ -27,7 +27,7 @@ SECRET_KEY = config("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ["127.0.0.1", "localhost", "18.224.179.137"]
+ALLOWED_HOSTS = ["127.0.0.1", "localhost", "3.15.225.76"]
 
 
 # for auth
@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "corsheaders",
     "summIApp",
 ]
 
@@ -59,6 +60,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     # 'request_logging.middleware.LoggingMiddleware',
 ]
 
@@ -86,12 +88,24 @@ WSGI_APPLICATION = "summI.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+if DEBUG:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': config('NAME'),
+            'USER': config('USER'),
+            'PASSWORD': config('PASSWORD'),
+            'HOST': config('HOST'),
+            'PORT': '5432',
+        }
+    }
 
 
 MEDIA_PATH = path.join(BASE_DIR, "media")
@@ -183,8 +197,4 @@ LOGGING = {
 }
 
 
-if DEBUG:
-    INSTALLED_APPS += ["corsheaders"]
-    MIDDLEWARE += ["corsheaders.middleware.CorsMiddleware"]
-    CORS_ALLOW_ALL_ORIGINS = True
-    
+CORS_ALLOW_ALL_ORIGINS = True

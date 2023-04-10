@@ -8,8 +8,7 @@ from .utils import *
 from summI.settings import MEDIA_PATH, MEDIA_URL
 from .constants import *
 from PIL import Image
-import imghdr
-from .ocr_model.summi_ocr import recognize_text
+import re
 
 
 # logging
@@ -56,34 +55,40 @@ def UserUploadedFilesView(request):
                 else:
                     user = user.first()
 
-            user_image = Image.open(uploaded_file.file)
-            if user_image.format.upper() in supported_converters:
-                converted_file = convert_to_png(user_image)
-
-                if converted_file is None:
-                    return JsonResponse({
-                        "status": 302,
-                        "message": "Problem with the converter",
-                    })
-
-                user_image = Image.open(converted_file)
-                file_name = "_".join(file_name.split(".")[:-1]) + ".png"
-
             uploaded_file_object = UserUploadedFiles.objects.create(
                 user=user, file_name=file_name, is_public_file=is_public_file)
             file_path = os.path.join(
                 MEDIA_PATH, str(uploaded_file_object.uuid))
 
-            if create_dirs(file_path):
-                file_path = os.path.join(file_path, file_name)
-                try:
-                    user_image.save(file_path)
-                except Exception as e:
-                    logger.error(traceback.format_exc())
+            with Image.open(uploaded_file.file) as f:
+                image_format = f.format.upper()
+
+            if image_format in supported_converters:
+                converted_image_file_path = convert_to_png(
+                    uploaded_file, file_path)
+
+                if converted_image_file_path is None:
                     return JsonResponse({
-                        "status": 301,
-                        "message": "Cannot able to save the file to the disk",
+                        "status": 302,
+                        "message": "Problem with the converter",
                     })
+
+                uploaded_file_object.file_name = os.path.split(
+                    converted_image_file_path)[1]
+                file_path = converted_image_file_path
+
+            if create_dirs(file_path):
+                if image_format not in supported_converters:
+                    file_path = os.path.join(file_path, file_name)
+                    try:
+                        user_image = Image.open(uploaded_file.file)
+                        user_image.save(file_path)
+                    except Exception as e:
+                        logger.error(traceback.format_exc())
+                        return JsonResponse({
+                            "status": 301,
+                            "message": "Cannot able to save the file to the disk",
+                        })
 
                 uploaded_file_object.file_path = file_path
                 uploaded_file_object.save()
@@ -92,13 +97,6 @@ def UserUploadedFilesView(request):
                     "status": 400,
                     "message": "cannot able to create a dir in media"
                 })
-
-            try:
-                os.remove(converted_file)
-            except UnboundLocalError:
-                pass
-            except Exception as e:
-                logger.error(traceback.format_exc())
 
             return JsonResponse({
                 "status": 200,
@@ -168,12 +166,13 @@ def GetSummarisedTextView(request):
                     "message": "Invalid Image ID or Uploaded File object not found"
                 })
 
-            detected_text = recognize_text(user_uploaded_file_obj.file_path)
+            detected_text = recognize_text_wrapper(user_uploaded_file_obj.file_path)
+            cleaned_detected_text = re.sub('[^A-Za-z0-9]+', ' ', detected_text)
 
-            if len(detected_text):
+            if len(cleaned_detected_text):
                 return JsonResponse({
                     "status": 200,
-                    "message": detected_text,
+                    "message": cleaned_detected_text,
                 })
 
             return JsonResponse({
