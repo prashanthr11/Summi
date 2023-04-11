@@ -9,7 +9,7 @@ from summI.settings import MEDIA_PATH, MEDIA_URL
 from .constants import *
 from PIL import Image
 import re
-
+from .sum_api import *
 
 # logging
 logger = logging.getLogger("django")
@@ -168,6 +168,7 @@ def GetSummarisedTextView(request):
 
             detected_text = recognize_text_wrapper(user_uploaded_file_obj.file_path)
             cleaned_detected_text = re.sub('[^A-Za-z0-9]+', ' ', detected_text)
+            summary = summarize_text(cleaned_detected_text)
 
             if len(cleaned_detected_text):
                 return JsonResponse({
