@@ -10,7 +10,6 @@ logger = logging.getLogger("django")
 def validate_file(file):
     try:
         with Image.open(file) as img:
-            print(img.format.upper())
             return img.format.upper() in ["PNG", "JPG", "JPEG", "WEBP", "TIFF"]
     except Exception as e:
         logger.error(traceback.format_exc())
