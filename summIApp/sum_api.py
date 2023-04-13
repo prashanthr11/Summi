@@ -1,7 +1,5 @@
-import requests
 import logging
 import traceback
-import os
 import openai
 from decouple import config
 
