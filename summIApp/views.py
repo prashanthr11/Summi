@@ -168,12 +168,13 @@ def GetSummarisedTextView(request):
 
             detected_text = recognize_text_wrapper(user_uploaded_file_obj.file_path)
             cleaned_detected_text = re.sub('[^A-Za-z0-9]+', ' ', detected_text)
-            summary = summarize_text(cleaned_detected_text)
+            summary_text = summarize_text(cleaned_detected_text)
+            cleaned_summary_text = re.sub('[^A-Za-z0-9]+', ' ', summary_text)
 
             if len(cleaned_detected_text):
                 return JsonResponse({
                     "status": 200,
-                    "message": cleaned_detected_text,
+                    "message": cleaned_summary_text,
                 })
 
             return JsonResponse({

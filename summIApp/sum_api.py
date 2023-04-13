@@ -3,13 +3,14 @@ import logging
 import traceback
 import os
 import openai
-
+from decouple import config
 
 logger = logging.getLogger("django")
 
+
 def summarize_text(text):
     try:
-        openai.api_key = os.environ['OPENAI_API_KEY']
+        openai.api_key = config("OPENAI_API_KEY")
         response = openai.Completion.create(
             model="text-ada-001",
             prompt=f'{text}\n\nTl;dr',
@@ -19,10 +20,8 @@ def summarize_text(text):
             frequency_penalty=0.0,
             presence_penalty=1
         )
+        return response['choices'][0].text.strip()
 
-        return response['choices'][0].text[1:]
-
-    
     except Exception as e:
         logger.error(traceback.format_exc())
         return ""
