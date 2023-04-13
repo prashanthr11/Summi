@@ -1,14 +1,15 @@
 import requests
 import logging
 import traceback
+import os
 import openai
+
 
 logger = logging.getLogger("django")
 
 def summarize_text(text):
     try:
-
-        openai.api_key = "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"
+        openai.api_key = os.environ['OPENAI_API_KEY']
         response = openai.Completion.create(
             model="text-ada-001",
             prompt=f'{text}\n\nTl;dr',
