@@ -133,3 +133,4 @@ media/*
 
 summIApp/ml_exp/*
 service-account.json
+summIApp/apikey.env
