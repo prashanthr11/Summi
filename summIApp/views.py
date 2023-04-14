@@ -9,6 +9,7 @@ from summI.settings import MEDIA_PATH, MEDIA_URL
 from .constants import *
 from PIL import Image
 import re
+from .sum_api import *
 from .imgbb.upload_file import imgbb_upload
 from .imgbb.download_file import imgbb_download_file
 
@@ -201,11 +202,13 @@ def GetSummarisedTextView(request):
 
             detected_text = recognize_text_wrapper(file_path)
             cleaned_detected_text = re.sub('[^A-Za-z0-9]+', ' ', detected_text)
+            summary_text = summarize_text(cleaned_detected_text)
+            cleaned_summary_text = re.sub('[^A-Za-z0-9]+', ' ', summary_text)
 
             if len(cleaned_detected_text):
                 return JsonResponse({
                     "status": 200,
-                    "message": cleaned_detected_text,
+                    "message": cleaned_summary_text,
                 })
 
             return JsonResponse({
