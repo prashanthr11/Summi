@@ -14,7 +14,7 @@ def imgbb_upload(file_contents):
         encoded_string = base64.b64encode(file_contents)
 
         params = {
-            "key": config("API_KEY")
+            "key": config("IMGBB_API_KEY")
         }
 
         api_response = requests.post(imgbb_url, params=params, data={
