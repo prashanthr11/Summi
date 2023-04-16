@@ -246,8 +246,10 @@ def ProcessImageURLView(request):
         # For example, you can use your recognize_text_wrapper function
         detected_text = recognize_text_wrapper(temp_image_file.name)
         cleaned_detected_text = re.sub('[^A-Za-z0-9]+', ' ', detected_text)
+        summary_text = summarize_text(cleaned_detected_text)
+        cleaned_summary_text = re.sub('[^A-Za-z0-9]+', ' ', summary_text)
 
-        if len(cleaned_detected_text):
-            return JsonResponse({"status": 200, "message": cleaned_detected_text})
+        if len(cleaned_summary_text):
+            return JsonResponse({"status": 200, "message": cleaned_summary_text})
 
         return JsonResponse({"status": 302, "message": "Empty file or empty text detected"})
