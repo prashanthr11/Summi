@@ -7,6 +7,7 @@ import traceback
 from summI.settings import BASE_DIR
 from .ocr_model.summi_ocr import recognize_text
 from .ocr_api import recognize_text_api
+import shutil
 
 logger = logging.getLogger("django")
 
@@ -55,3 +56,10 @@ def create_dir_in_temporary_media():
     except Exception as e:
         logger.error(traceback.format_exc())
         return ""
+
+
+def remove_directory(file_path):
+    try:
+        shutil.rmtree(file_path)
+    except Exception as e:
+        logger.error(traceback.format_exc())
