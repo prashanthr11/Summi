@@ -196,8 +196,8 @@ def GetSummarisedTextView(request):
             file_path = user_uploaded_file_obj.file_path
 
             if user_uploaded_file_obj.is_file_uploaded_on_imgbb:
-                temp_path = create_dir_in_temporary_media()
-                temp_path = os.path.join(temp_path, str(uuid4()) + ".png")
+                temp_path_dir = create_dir_in_temporary_media()
+                temp_path = os.path.join(temp_path_dir, str(uuid4()) + ".png")
                 imgbb_download_file(
                     user_uploaded_file_obj.file_path, temp_path)
                 file_path = temp_path
@@ -206,6 +206,9 @@ def GetSummarisedTextView(request):
             cleaned_detected_text = re.sub('[^A-Za-z0-9]+', ' ', detected_text)
             summary_text = summarize_text(cleaned_detected_text)
             cleaned_summary_text = re.sub('[^A-Za-z0-9]+', ' ', summary_text)
+
+            if user_uploaded_file_obj.is_file_uploaded_on_imgbb:
+                remove_directory(temp_path_dir)
 
             if len(cleaned_detected_text):
                 return JsonResponse({
