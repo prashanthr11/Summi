@@ -15,14 +15,25 @@ from .sum_api import *
 from .imgbb.upload_file import imgbb_upload
 from .imgbb.download_file import imgbb_download_file
 
-# logging
+# Configure logging
 logger = logging.getLogger("django")
 
 
-# Create your views here.
 @csrf_exempt
 @api_view(["POST"])
 def UserUploadedFilesView(request):
+    """
+    API endpoint for handling file uploads.
+    
+    Validates uploaded files, processes them, and stores them in the system.
+    Supports both authenticated and anonymous users.
+    
+    Args:
+        request: HTTP request object containing file data
+        
+    Returns:
+        JsonResponse: Response containing status and processed file information
+    """
     if request.method == "POST":
         try:
             user = request.user
@@ -30,12 +41,14 @@ def UserUploadedFilesView(request):
             is_valid_file = False
             is_public_file = True
 
+            # Validate file size
             if uploaded_file.size > max_file_size:
                 return JsonResponse({
                     "status": 401,
                     "message": f"file size cannot be higher than {max_file_size//1024**2} MB",
                 })
 
+            # Validate file format
             file_contents = uploaded_file.file.read()
             is_valid_file = validate_file(uploaded_file.file)
 
@@ -45,8 +58,10 @@ def UserUploadedFilesView(request):
                     "message": "file format not supported",
                 })
 
+            # Sanitize filename
             file_name = strip_html(uploaded_file.name)
 
+            # Handle authenticated user uploads
             if user.is_authenticated:
                 user = User.objects.filter(user=user).first()
                 is_public_file = False
@@ -139,41 +154,20 @@ def UserUploadedFilesView(request):
             })
 
 
-# @csrf_exempt
-# @api_view(["POST"])
-# def GetUserUploadedFileView(request):
-#     if request.method == "POST":
-#         try:
-#             image_uuid = request.POST.get('image_uuid', None)
-
-#             if image_uuid is None:
-#                 return JsonResponse({
-#                     "status": 300,
-#                     "message": "Missing Image ID"
-#                 })
-
-#             user_uploaded_file_obj = UserUploadedFiles.objects.filter(uuid=image_uuid).first()
-
-#             if not user_uploaded_file_obj:
-#                 return JsonResponse({
-#                     "status": 301,
-#                     "message": "Invalid Image ID"
-#                 })
-
-#             return JsonResponse({
-#                 "status": 200,
-#                 "message": "success",
-#                 "image_url": MEDIA_URL + str(user_uploaded_file_obj.uuid) + "/" + str(user_uploaded_file_obj.file_name),
-#             })
-
-
-#         except Exception as e:
-#             logger.error(traceback.format_exc())
-
-
 @csrf_exempt
 @api_view(["POST"])
 def GetSummarisedTextView(request):
+    """
+    API endpoint for retrieving summarized text from an uploaded image.
+    
+    Uses OCR to extract text from the image and then summarizes it.
+    
+    Args:
+        request: HTTP request object containing image ID
+        
+    Returns:
+        JsonResponse: Response containing summarized text
+    """
     if request.method == "POST":
         try:
             image_uuid = request.POST.get('image_uuid', None)
@@ -184,8 +178,7 @@ def GetSummarisedTextView(request):
                     "message": "Missing Image ID"
                 })
 
-            user_uploaded_file_obj = UserUploadedFiles.objects.filter(
-                uuid=image_uuid).first()
+            user_uploaded_file_obj = UserUploadedFiles.objects.filter(uuid=image_uuid).first()
 
             if not user_uploaded_file_obj:
                 return JsonResponse({
@@ -228,9 +221,21 @@ def GetSummarisedTextView(request):
                 "message": str(e),
             })
 
+
 @csrf_exempt
 @api_view(["POST"])
 def ProcessImageURLView(request):
+    """
+    API endpoint for processing an image URL.
+    
+    Downloads the image from the URL, processes it, and returns the result.
+    
+    Args:
+        request: HTTP request object containing image URL
+        
+    Returns:
+        JsonResponse: Response containing processed image information
+    """
     if request.method == "POST":
         image_url = request.POST.get('image_url', None)
 

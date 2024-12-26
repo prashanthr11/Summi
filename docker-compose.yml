@@ -2,9 +2,11 @@ version: "3"
 
 services:
   web:
+    # Mount the current directory to /summI in the container
     volumes:
       - .:/summI
     build: .
+    # Automatically restart the container if it crashes
     restart: always
     command: python manage.py runserver 0.0.0.0:8080
     ports:
